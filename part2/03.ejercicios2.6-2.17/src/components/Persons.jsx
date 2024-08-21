@@ -9,8 +9,8 @@ const Persons = ({ findPerson, deletePhone }) => {
             {person.name} {person.phone}
           </p>
           < ButtonDelete
-            deletePhone={deletePhone}
             person={person}
+            deletePhone={deletePhone}
           />
         </div>
       ))}

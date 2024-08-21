@@ -2,13 +2,15 @@ import { useState, useEffect } from "react"
 import Filter from "./components/Filter"
 import Form from "./components/Form"
 import Persons from "./components/Persons"
+import Notification from "./components/Notification"
 import phonebookServices from './services/phenobook'
 
-function App() {
+const App = () => {
   const [persons, setPersons] = useState([])
   const [newName, setNewName] = useState('')
   const [newPhone, setNewPhone] = useState('')
   const [searchName, setSearchName] = useState('')
+  const [message, setMessage] = useState(null)
 
   useEffect(() => {
     phonebookServices
@@ -43,14 +45,17 @@ function App() {
     } else {
       const personObject = { 
         name: newName,
-        phone: newPhone,
-        id: persons.length + 1
+        phone: newPhone
       }
 
       phonebookServices
       .create(personObject)
       .then(returnedPhone => {
         setPersons(persons.concat(returnedPhone))
+        setMessage(`Added ${returnedPhone.name}`)
+        setTimeout(() => {
+          setMessage(null)
+        }, 2500)
         setNewName('')
         setNewPhone('')
       })
@@ -58,12 +63,20 @@ function App() {
   }
 
   const deletePhone = (person) => {
+    const id = String(person.id)
+    console.log(person);
     if(window.confirm(`Delete ${person.name}`)){
       phonebookServices
-        .deletePhone(person.id)
+        .deletePhone(id)
         .then(() => {
             setPersons(persons.filter(p => p.id !== person.id))
         })
+        .catch(error => {
+          setMessage(`Error: Unable to delete ${person.name}`);
+          setTimeout(() => {
+            setMessage(null);
+          }, 2500);
+        });
     }
   }
 
@@ -88,6 +101,8 @@ function App() {
   return (
     <div>
       <h2>Phonebook</h2>
+
+      <Notification message={message} />
 
       <Filter searchName={searchName} handleSearchName={handleSearchName}/>
       

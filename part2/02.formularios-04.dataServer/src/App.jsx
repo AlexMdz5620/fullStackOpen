@@ -1,11 +1,28 @@
 import { useState, useEffect } from "react";
 import Note from "./components/Note";
+import Notification from "./components/Notification";
 import noteServices from "./services/notes"
 
-function App() {
-  const [notes, setNotes] = useState([]);
+const Footer = () => {
+  const footerStyle = {
+    color: "green",
+    fontStyle: "italic",
+    fontSize: 16
+  }
+
+  return (
+    <div style={footerStyle}>
+      <br />
+      <em>Notes app, Departament of Computer Science, University of Helsinki 2024</em>
+    </div>
+    )
+}
+
+const App = () => {
+  const [notes, setNotes] = useState(null);
   const [newNotes, setNewNotes] = useState("");
   const [showAll, setshowAll] = useState(true);
+  const [errorMessage, setErrorMessage] = useState('Some error happened...');
 
   useEffect(() => {
     noteServices
@@ -14,6 +31,10 @@ function App() {
         setNotes(initialNotes);
       })
   }, []);
+
+  if(!notes){
+    return null
+  }
 
   const toggleImportance = id => {
     const note = notes.find(n => n.id === id)
@@ -25,9 +46,12 @@ function App() {
         setNotes(notes.map(note => note.id !== id ? note : returnedNote))
       })
       .catch(error => {
-        alert(
-          `The note '${note.content}' was already delete from server`
+        setErrorMessage(
+          `The note "${note.content}" was already delete from server`
         )
+        setTimeout(() => {
+          setErrorMessage(null)
+        }, 5000)
         setNotes(notes.filter(n => n.id !== id))
       })
   }
@@ -52,8 +76,6 @@ function App() {
     setNewNotes(e.target.value);
   };
 
-
-
   const noteToShow = showAll
     ? notes
     : notes.filter((note) => note.important === true);
@@ -61,6 +83,7 @@ function App() {
   return (
     <div>
       <h1>Notes</h1>
+      <Notification message={errorMessage} />
       <div>
         <button onClick={() => setshowAll(!showAll)}>
           Show {showAll ? "Important" : "All"}
@@ -79,6 +102,7 @@ function App() {
         <input value={newNotes} onChange={handleNoteChange} />
         <button type="submit">Save</button>
       </form>
+      <Footer />
     </div>
   );
 }
