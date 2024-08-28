@@ -1,5 +1,5 @@
 import axios from "axios";
-const baseURL = 'http://localhost:3001/api/notes'
+const baseURL = 'https://fullstackopen-backend-2klx.onrender.com//api/notes'
 
 const getAll = () => {
     const request = axios.get(baseURL)
