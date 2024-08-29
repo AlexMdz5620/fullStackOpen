@@ -1,110 +1,93 @@
-import { useState, useEffect } from "react";
-import Note from "./components/Note";
-import Notification from "./components/Notification";
-import noteServices from "./services/notes"
-
-const Footer = () => {
-  const footerStyle = {
-    color: "green",
-    fontStyle: "italic",
-    fontSize: 16
-  }
-
-  return (
-    <div style={footerStyle}>
-      <br />
-      <em>Notes app, Departament of Computer Science, University of Helsinki 2024</em>
-    </div>
-    )
-}
+import { useState, useEffect } from 'react'
+import Note from './components/Note'
+import Notification from './components/Notification'
+import Footer from './components/Footer'
+import noteService from './services/notes'
 
 const App = () => {
-  const [notes, setNotes] = useState(null);
-  const [newNotes, setNewNotes] = useState("");
-  const [showAll, setshowAll] = useState(true);
-  const [errorMessage, setErrorMessage] = useState('Some error happened...');
+  const [notes, setNotes] = useState([])
+  const [newNote, setNewNote] = useState('')
+  const [showAll, setShowAll] = useState(true)
+  const [errorMessage, setErrorMessage] = useState(null)
 
   useEffect(() => {
-    noteServices
+    noteService
       .getAll()
       .then(initialNotes => {
-        setNotes(initialNotes);
+        setNotes(initialNotes)
       })
-  }, []);
+  }, [])
 
-  if(!notes){
-    return null
+  const addNote = (event) => {
+    event.preventDefault()
+    const noteObject = {
+      content: newNote,
+      important: Math.random() > 0.5,
+    }
+  
+    noteService
+      .create(noteObject)
+        .then(returnedNote => {
+        setNotes(notes.concat(returnedNote))
+        setNewNote('')
+      })
   }
 
-  const toggleImportance = id => {
+  const toggleImportanceOf = id => {
     const note = notes.find(n => n.id === id)
     const changedNote = { ...note, important: !note.important }
-
-    noteServices
+  
+    noteService
       .update(id, changedNote)
-      .then(returnedNote => {
+        .then(returnedNote => {
         setNotes(notes.map(note => note.id !== id ? note : returnedNote))
       })
       .catch(error => {
         setErrorMessage(
-          `The note "${note.content}" was already delete from server`
+          `Note '${note.content}' was already removed from server`
         )
         setTimeout(() => {
           setErrorMessage(null)
         }, 5000)
-        setNotes(notes.filter(n => n.id !== id))
       })
   }
 
-  const addnote = (e) => {
-    e.preventDefault();
-    const noteObject = {
-      content: newNotes,
-      important: Math.random() < 0.5,
-      id: notes.length + 1
-    }
-
-    noteServices
-      .create(noteObject)
-      .then(returnedNote => {
-        setNotes(notes.concat(returnedNote))
-        setNewNotes("")
-      })
+  const handleNoteChange = (event) => {
+    setNewNote(event.target.value)
   }
 
-  const handleNoteChange = (e) => {
-    setNewNotes(e.target.value);
-  };
-
-  const noteToShow = showAll
+  const notesToShow = showAll
     ? notes
-    : notes.filter((note) => note.important === true);
+    : notes.filter(note => note.important)
 
   return (
     <div>
       <h1>Notes</h1>
       <Notification message={errorMessage} />
       <div>
-        <button onClick={() => setshowAll(!showAll)}>
-          Show {showAll ? "Important" : "All"}
+        <button onClick={() => setShowAll(!showAll)}>
+          show {showAll ? 'important' : 'all' }
         </button>
-      </div>
+      </div>      
       <ul>
-        {noteToShow.map((note) => {
-          return <Note 
-                    key={note.id}
-                    note={note}
-                    toggleImportance={() => toggleImportance(note.id)}
-                 />;
-        })}
+        {notesToShow.map(note => 
+          <Note
+            key={note.id}
+            note={note}
+            toggleImportance={() => toggleImportanceOf(note.id)}
+          />
+        )}
       </ul>
-      <form onSubmit={addnote}>
-        <input value={newNotes} onChange={handleNoteChange} />
-        <button type="submit">Save</button>
+      <form onSubmit={addNote}>
+      <input
+          value={newNote}
+          onChange={handleNoteChange}
+        />
+        <button type="submit">save</button>
       </form>
       <Footer />
     </div>
-  );
+  )
 }
 
-export default App;
+export default App
