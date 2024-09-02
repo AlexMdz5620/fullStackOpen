@@ -1,5 +1,5 @@
 import axios from "axios";
-const baseURL = 'https://fullstackopen-dlqx.onrender.com/api/notes'
+const baseURL = '/api/notes'
 
 const getAll = () => {
     const request = axios.get(baseURL)
