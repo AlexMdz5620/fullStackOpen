@@ -1,6 +1,8 @@
+require('dotenv').config()
 const express = require("express");
 const cors = require("cors");
 const app = express();
+const Note = require('./models/note.js')
 
 app.use(express.static('dist'))
 app.use(cors())
@@ -29,18 +31,16 @@ app.get("/", (req, res) => {
 });
 
 app.get("/api/notes", (req, res) => {
-  res.json(notes);
+  Note.find({}).then(notes => {
+    res.json(notes);
+  })
 });
 
 app.get("/api/notes/:id", (req, res) => {
-  const id = Number(req.params.id);
-  const note = notes.find((note) => note.id === id);
-
-  if (note) {
-    res.json(note);
-  } else {
-    res.status(404).end();
-  }
+  Note.findById(req.params.id)
+    .then(note => {
+      res.json(note)
+    })
 });
 
 app.delete("/api/notes/:id", (req, res) => {
@@ -50,31 +50,31 @@ app.delete("/api/notes/:id", (req, res) => {
   res.status(204).end();
 });
 
-const generateId = () => {
+/* const generateId = () => {
   const maxID =
     notes.length > 0 ? Math.max(...notes.map((note) => note.id)) : 0;
 
   return maxID + 1;
-};
+}; */
 
 app.post("/api/notes", (req, res) => {
   const body = req.body;
 
-  if (!body.content) {
+  if (body.content === undefined) {
     return res.status(400).json({
       error: "Content is missing"
     });
   }
 
-  const note = {
+  const note = new Note({
     content: body.content,
     important: Boolean(body.important) || false,
-    id: generateId()
-  };
+    // id: generateId()
+  });
 
-  notes = notes.concat(note);
-
-  res.json(note);
+  note.save().then(savedNote => {
+    res.json(savedNote);
+  })
 });
 
 const unknownEndpoint = (req, res, next) => {
