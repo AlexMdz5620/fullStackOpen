@@ -4,9 +4,9 @@ const cors = require("cors");
 const app = express();
 const Note = require('./models/note.js')
 
-app.use(express.static('dist'))
 app.use(cors())
 app.use(express.json());
+app.use(express.static('dist'))
 
 let notes = [
   {
